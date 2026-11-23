@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#101827">
+<title>Tambola Smart Caller</title>
+<style>
+:root{--bg:#0b1220;--panel:#121d2e;--panel2:#1a2940;--text:#f4f7fb;--muted:#9aabc2;--green:#26c281;--line:#293950;--gold:#f2c66d}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#1b2b43 0,#0b1220 48%);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}
+.wrap{max-width:850px;margin:auto;padding:22px 16px 40px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:22px}.brand{font-weight:900;letter-spacing:2px;font-size:20px}.sub{color:var(--muted);font-size:12px;letter-spacing:1.4px}
+button,input,textarea{font:inherit}button{border:0;border-radius:13px;padding:12px 16px;font-weight:750;cursor:pointer;transition:.15s}button:active{transform:scale(.98)}.adminBtn{background:#26364d;color:#eaf1fa;border:1px solid #3b506c}
+.hero{background:linear-gradient(145deg,#17263b,#111b2b);border:1px solid var(--line);border-radius:25px;padding:26px 18px;text-align:center;box-shadow:0 18px 50px #0005}
+.label{color:var(--muted);font-size:12px;letter-spacing:2px;font-weight:800}.number{font-size:clamp(100px,25vw,160px);font-weight:950;line-height:1.1;margin:8px 0;color:#fff;text-shadow:0 8px 35px #0007;min-height:1.15em}.number.empty{color:#40536d}.status{color:var(--muted);font-size:13px;margin-bottom:18px}
+.next{width:min(100%,390px);background:var(--green);color:#062317;font-size:18px;padding:17px 22px;box-shadow:0 8px 24px #26c28133}.next:disabled{opacity:.5;cursor:not-allowed}
+.actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:14px}.secondary{background:#26364d;color:#edf4ff;border:1px solid #3b506c}.danger{background:#512d36;color:#ffe7e9;border:1px solid #79414d}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:15px 0}.stat{background:#121d2e;border:1px solid var(--line);border-radius:15px;padding:13px;text-align:center}.stat strong{display:block;font-size:23px}.stat span{font-size:11px;color:var(--muted);letter-spacing:.7px}
+.section{margin-top:18px;background:#121d2e;border:1px solid var(--line);border-radius:19px;padding:17px}.sectionHead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:13px}.section h2{font-size:15px;margin:0}.muted{color:var(--muted);font-size:12px}
+.board{display:grid;grid-template-columns:repeat(10,1fr);gap:5px}.cell{aspect-ratio:1;display:grid;place-items:center;background:#1b2a40;border:1px solid #293b55;border-radius:8px;color:#91a4bf;font-size:12px;font-weight:700}.cell.called{background:#176c4a;border-color:#26c281;color:#fff}
+.history{display:flex;gap:7px;flex-wrap:wrap}.chip{background:#20334b;border:1px solid #35506d;border-radius:9px;padding:7px 10px;font-weight:800}.emptyMsg{color:var(--muted);font-size:13px}
+footer{text-align:center;color:#71839c;font-size:11px;margin-top:18px}
+.overlay{position:fixed;inset:0;background:#020712cc;display:none;align-items:center;justify-content:center;padding:16px;z-index:5}.overlay.show{display:flex}.modal{width:min(100%,520px);max-height:90vh;overflow:auto;background:#121d2e;border:1px solid #354b67;border-radius:22px;padding:20px;box-shadow:0 25px 80px #0009}.modalHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}.modal h2{font-size:19px;margin:0}.close{background:#26364d;color:white;padding:7px 11px}
+.field{display:block;margin:13px 0 6px;color:#c6d2e2;font-size:13px;font-weight:700}input,textarea{width:100%;background:#0b1422;border:1px solid #344962;border-radius:11px;color:white;padding:12px;outline:none}input:focus,textarea:focus{border-color:var(--green)}textarea{min-height:90px;resize:vertical}.row{display:flex;gap:9px}.row>*{flex:1}.save{background:var(--green);color:#062317}.priorityList{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}.priority{display:flex;align-items:center;gap:7px;background:#24354d;border:1px solid #405672;border-radius:9px;padding:6px 9px;font-weight:800}.priority button{padding:0;background:transparent;color:#ff9a9a;font-size:17px}.notice{background:#302b1c;border:1px solid #66552c;color:#f4d995;padding:11px;border-radius:11px;font-size:12px;line-height:1.5;margin-top:12px}
+@media(max-width:480px){.wrap{padding:16px 12px 30px}.hero{padding:22px 12px}.board{gap:3px}.cell{font-size:10px;border-radius:6px}.stats{gap:7px}.stat{padding:10px 5px}.stat strong{font-size:20px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div><div class="brand">TAMBOLA</div><div class="sub">SMART NUMBER CALLER</div></div>
+    <button class="adminBtn" id="adminOpen">Admin</button>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="label">CURRENT NUMBER</div>
+      <div class="number empty" id="current" title="Double-click to choose the next number" role="button" tabindex="0" aria-label="Double-click to choose the next number">—</div>
+      <div class="status" id="status">Ready to start · Double-click the number display to choose your next number</div>
+      <button class="next" id="nextBtn">CALL NEXT NUMBER&nbsp; →</button>
+      <div class="actions">
+        <button class="secondary" id="undoBtn" disabled>Undo last</button>
+        <button class="secondary" id="soundBtn">Sound: Off</button>
+        <button class="danger" id="newGameBtn">＋ New Game</button>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div class="stat"><strong id="calledCount">0</strong><span>CALLED</span></div>
+      <div class="stat"><strong id="remainingCount">90</strong><span>REMAINING</span></div>
+      <div class="stat"><strong id="priorityRemaining">0</strong><span>QUEUE LEFT</span></div>
+    </section>
+
+    <section class="section">
+      <div class="sectionHead"><h2>Number board</h2><span class="muted">1–90</span></div>
+      <div class="board" id="board"></div>
+    </section>
+
+    <section class="section">
+      <div class="sectionHead"><h2>Call history</h2><span class="muted">Latest first</span></div>
+      <div class="history" id="history"><span class="emptyMsg">No numbers called yet.</span></div>
+    </section>
+  </main>
+  <footer>Tambola Smart Caller · One number is called only once per game</footer>
+</div>
+
+<div class="overlay" id="adminOverlay" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
+  <div class="modal">
+    <div class="modalHead"><h2 id="adminTitle">Admin controls</h2><button class="close" id="closeAdmin">✕</button></div>
+    <div id="loginArea">
+      <p class="muted">Enter admin PIN to manage the private number queue.</p>
+      <label class="field" for="pin">Admin PIN</label>
+      <input id="pin" type="password" inputmode="numeric" placeholder="Enter PIN">
+      <div class="actions"><button class="save" id="loginBtn">Unlock admin</button></div>
+      <p class="muted">Default demo PIN: 2468</p>
+    </div>
+    <div id="controlArea" hidden>
+      <p class="muted">Add numbers in the exact order you want them called. These controls and the queue are not shown on the public game screen.</p>
+      <label class="field" for="numbersInput">Add multiple priority numbers (comma or space separated)</label>
+      <textarea id="numbersInput" placeholder="Example: 5, 10, 15, 25, 40"></textarea>
+      <div class="row" style="margin-top:9px">
+        <button class="save" id="addNumbers">Add to queue</button>
+        <button class="secondary" id="clearQueue">Clear pending queue</button>
+      </div>
+      <div class="sectionHead" style="margin-top:20px"><h2>Private priority queue</h2><span class="muted" id="queueCount">0 numbers</span></div>
+      <div class="priorityList" id="priorityList"><span class="emptyMsg">No priority numbers set.</span></div>
+      <div class="notice">Priority numbers are called first, in the order shown here. If a queued number has already been called, it is skipped. When the queue is empty, the caller automatically picks a random number from the remaining numbers.</div>
+      <label class="field" for="newPin" style="margin-top:18px">Change admin PIN (optional)</label>
+      <div class="row"><input id="newPin" type="password" inputmode="numeric" placeholder="New PIN (4+ digits)"><button class="secondary" id="changePin">Update PIN</button></div>
+      <div class="actions"><button class="danger" id="resetGame">Reset game</button><button class="secondary" id="lockAdmin">Lock admin</button></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY='tambola-smart-caller-v1';
+const defaults={called:[],queue:[],pin:'2468',sound:false,instant:null};
+let data=load();
+let unlocked=false;
+let lastNumberTap=0;
+const $=id=>document.getElementById(id);
+function load(){try{return {...defaults,...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch(e){return {...defaults}}}
+function save(){localStorage.setItem(KEY,JSON.stringify(data))}
+function remaining(){return Array.from({length:90},(_,i)=>i+1).filter(n=>!data.called.includes(n))}
+function render(){
+  const last=data.called[data.called.length-1];
+  $('current').textContent=last??'—';$('current').classList.toggle('empty',!last);
+  $('status').textContent=last?`Number ${last} called`:'Ready to start · Double-click the number display to choose your next number';
+  $('calledCount').textContent=data.called.length;
+  $('remainingCount').textContent=90-data.called.length;
+  $('priorityRemaining').textContent=data.queue.filter(n=>!data.called.includes(n)).length;
+  $('undoBtn').disabled=!data.called.length;
+  $('soundBtn').textContent=`Sound: ${data.sound?'On':'Off'}`;
+  $('history').innerHTML=data.called.length?data.called.slice().reverse().map(n=>`<span class="chip">${n}</span>`).join(''):'<span class="emptyMsg">No numbers called yet.</span>';
+  $('board').innerHTML=Array.from({length:90},(_,i)=>i+1).map(n=>`<div class="cell ${data.called.includes(n)?'called':''}">${n}</div>`).join('');
+  renderQueue();
+}
+function renderQueue(){
+  if(!$('priorityList'))return;
+  const pending=data.queue.filter(n=>!data.called.includes(n));
+  $('queueCount').textContent=`${pending.length} pending`;
+  $('priorityList').innerHTML=pending.length?pending.map(n=>`<span class="priority">${n}<button aria-label="Remove ${n}" data-remove="${n}">×</button></span>`).join(''):'<span class="emptyMsg">No priority numbers set.</span>';
+  $('priorityList').querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click',()=>{const n=Number(b.dataset.remove);data.queue=data.queue.filter(x=>x!==n);save();render()}));
+}
+function beep(){if(!data.sound)return;try{const C=window.AudioContext||window.webkitAudioContext;const c=new C();const o=c.createOscillator();const g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=740;g.gain.value=.08;o.start();o.stop(c.currentTime+.16)}catch(e){}}
+$('nextBtn').addEventListener('click',()=>{
+  const left=remaining();if(!left.length){$('status').textContent='All 90 numbers have been called!';return}
+  let next=null;
+  if(Number.isInteger(data.instant) && left.includes(data.instant)){
+    next=data.instant;
+    data.instant=null;
+  }
+  while(data.queue.length&&!next){const candidate=data.queue.shift();if(left.includes(candidate))next=candidate}
+  if(next===null)next=left[Math.floor(Math.random()*left.length)];
+  data.called.push(next);save();render();beep();
+  if(data.called.length===90)$('status').textContent='Game complete · All 90 numbers called';
+});
+$('undoBtn').addEventListener('click',()=>{if(!data.called.length)return;const n=data.called.pop();data.queue.unshift(n);save();render()});
+$('soundBtn').addEventListener('click',()=>{data.sound=!data.sound;save();render()});
+$('newGameBtn').addEventListener('click',()=>{
+  if(!confirm('Start a completely new Tambola game? The board, called numbers and pending selected numbers will be cleared.'))return;
+  data.called=[];
+  data.queue=[];
+  data.instant=null;
+  save();
+  render();
+  $('status').textContent='New game started · Fresh board · Numbers 1–90';
+});
+$('adminOpen').addEventListener('click',()=>{$('adminOverlay').classList.add('show');$('loginArea').hidden=unlocked;$('controlArea').hidden=!unlocked;$('pin').value=''});
+$('closeAdmin').addEventListener('click',()=>$('adminOverlay').classList.remove('show'));
+$('adminOverlay').addEventListener('click',e=>{if(e.target===$('adminOverlay'))$('adminOverlay').classList.remove('show')});
+$('loginBtn').addEventListener('click',()=>{if($('pin').value===data.pin){unlocked=true;$('loginArea').hidden=true;$('controlArea').hidden=false;renderQueue()}else alert('Incorrect PIN. Try again.')});
+$('pin').addEventListener('keydown',e=>{if(e.key==='Enter')$('loginBtn').click()});
+function chooseNextNumber(){
+  const raw=prompt('Enter the number you want to appear on the next call (1–90):');
+  if(raw===null)return;
+  const n=Number(raw.trim());
+  if(!raw.trim() || !Number.isInteger(n) || n<1 || n>90){alert('Please enter a whole number from 1 to 90.');return}
+  if(data.called.includes(n)){alert('This number has already been called. Choose an uncalled number.');return}
+  data.instant=n;
+  save();
+  $('status').textContent='Next number selected. Press CALL NEXT NUMBER.';
+}
+$('current').addEventListener('dblclick',chooseNextNumber);
+$('current').addEventListener('touchend',()=>{
+  const now=Date.now();
+  if(now-lastNumberTap<450){chooseNextNumber();lastNumberTap=0;}
+  else lastNumberTap=now;
+},{passive:true});
+$('current').addEventListener('keydown',e=>{if(e.key==='Enter' || e.key===' '){e.preventDefault();chooseNextNumber()}});
+$('addNumbers').addEventListener('click',()=>{
+  const raw=$('numbersInput').value.trim();if(!raw)return;
+  const parsed=raw.split(/[\s,;]+/).filter(Boolean).map(Number);
+  if(parsed.some(n=>!Number.isInteger(n)||n<1||n>90)){alert('Only whole numbers from 1 to 90 are allowed.');return}
+  const existing=new Set(data.queue);
+  const added=parsed.filter(n=>!existing.has(n)&&!data.called.includes(n));
+  data.queue.push(...added);$('numbersInput').value='';save();render();
+  alert(`${added.length} new priority number(s) added.`);
+});
+$('clearQueue').addEventListener('click',()=>{if(confirm('Clear all pending priority numbers?')){data.queue=[];save();render()}});
+$('changePin').addEventListener('click',()=>{const p=$('newPin').value.trim();if(!/^\d{4,}$/.test(p)){alert('PIN must contain at least 4 digits.');return}data.pin=p;$('newPin').value='';save();alert('PIN updated on this device.')});
+$('resetGame').addEventListener('click',()=>{if(confirm('Reset all called numbers and start a new game? The priority queue will be kept.')){data.called=[];save();render();alert('Game reset.')}})
+$('lockAdmin').addEventListener('click',()=>{unlocked=false;$('controlArea').hidden=true;$('loginArea').hidden=false;$('adminOverlay').classList.remove('show')});
+render();
+</script>
+</body>
+</html>
